@@ -22,7 +22,7 @@ module.exports.db = db;
 const requestRoutes = require("./routes/requestsRoute")(io, db);
 // Use routes
 app.get("/", (req, res) => {
-    res.send("Hospital Request Backend Running ✅");
+    res.send("Hospital Request Backend Running ");
 });
 app.use("/", requestRoutes);
 
