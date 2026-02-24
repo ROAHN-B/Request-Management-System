@@ -1,46 +1,123 @@
-const backendURL = "http://localhost:3000/requests";
+const socket = io("http://localhost:3000");
+const API_BASE = "http://localhost:3000";
 
-async function loadRequests() {
-    const response = await fetch(backendURL);
-    const data = await response.json();
 
-    const table = document.getElementById("requestTable");
-    table.innerHTML = "";
+function switchView(view) {
+    const activeSec = document.getElementById('active-section');
+    const historySec = document.getElementById('history-section');
+    const title = document.getElementById('current-view-title');
 
-    data.forEach(req => {
-        const row = document.createElement("tr");
+    if (view === 'active') {
+        activeSec.classList.remove('d-none');
+        historySec.classList.add('d-none');
+        title.innerText = "Active Requests";
+        document.getElementById('nav-active').classList.add('active');
+        document.getElementById('nav-history').classList.remove('active');
+    } else {
+        activeSec.classList.add('d-none');
+        historySec.classList.remove('d-none');
+        title.innerText = "History";
+        document.getElementById('nav-history').classList.add('active');
+        document.getElementById('nav-active').classList.remove('active');
+    }
 
-        let totalTime = req.totalTime ? req.totalTime : calculateLiveTime(req.startTime);
-
-        row.innerHTML = `
-            <td>${req.bedNumber}</td>
-            <td>${req.status}</td>
-            <td>${new Date(req.startTime).toLocaleTimeString()}</td>
-            <td>${totalTime}</td>
-            <td>
-                ${req.status === "pending"
-                    ? `<button onclick="completeRequest(${req.id})">Complete</button>`
-                    : "Done"}
-            </td>
-        `;
-
-        table.appendChild(row);
-    });
+    
+    const offcanvasElement = document.getElementById('mobileMenu');
+    const instance = bootstrap.Offcanvas.getInstance(offcanvasElement);
+    if (instance) instance.hide();
 }
 
-function calculateLiveTime(startTime) {
-    const start = new Date(startTime);
-    const now = new Date();
-    return Math.floor((now - start) / 1000);
+
+socket.on("new-request", () => {
+    refreshData();
+});
+
+socket.on("request-update", (data) => {
+    const card = document.getElementById(`card-ward-${data.ward_number}`);
+    if (card) {
+        
+        card.classList.add('state-completed-flash');
+        card.querySelector('.badge').className = 'badge bg-success';
+        card.querySelector('.badge').innerText = 'COMPLETED';
+
+       
+        setTimeout(() => {
+            refreshData();
+        }, 1200);
+    } else {
+        refreshData();
+    }
+});
+
+
+async function refreshData() {
+    try {
+        const [activeRes, historyRes] = await Promise.all([
+            fetch(`${API_BASE}/active`),
+            fetch(`${API_BASE}/history`)
+        ]);
+        
+        const activeData = await activeRes.json();
+        const historyData = await historyRes.json();
+
+        renderActive(activeData);
+        renderHistory(historyData);
+    } catch (err) {
+        console.error("Fetch error:", err);
+    }
 }
 
-async function completeRequest(id) {
-    await fetch(`${backendURL}/${id}/complete`, {
-        method: "PUT"
-    });
+function renderActive(data) {
+    const container = document.getElementById('active-container');
+    if (data.length === 0) {
+        container.innerHTML = `<div class="text-center mt-5 text-muted">No pending requests</div>`;
+        return;
+    }
 
-    loadRequests();
+    container.innerHTML = data.map(req => `
+        <div class="card ward-card shadow-sm state-active" id="card-ward-${req.ward_number}">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">Ward ${req.ward_number}</h5>
+                    <div class="text-time">Call: ${new Date(req.sender_time).toLocaleTimeString()}</div>
+                </div>
+                <span class="badge bg-danger">ACTIVE</span>
+            </div>
+        </div>
+    `).join('');
 }
 
-setInterval(loadRequests, 1000);
-loadRequests();
+function renderHistory(data) {
+    const container = document.getElementById('history-container');
+    
+    // If no history exists yet
+    if (data.length === 0) {
+        container.innerHTML = `<div class="text-center mt-5 text-muted">No completed history</div>`;
+        return;
+    }
+
+    container.innerHTML = data.map(req => `
+        <div class="card ward-card shadow-sm border-0 mb-2">
+            <div class="card-body py-3">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <span class="fw-bold">Ward ${req.ward_number}</span>
+                    </div>
+                    
+                    <div class="col-4 text-center">
+                        <small class="text-muted d-block">Called</small>
+                        <span class="text-dark">${new Date(req.sender_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+
+                    <div class="col-4 text-end">
+                        <small class="text-muted d-block">Resolved</small>
+                        <span class="text-dark">${new Date(req.receiver_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Initial Load
+document.addEventListener('DOMContentLoaded', refreshData);

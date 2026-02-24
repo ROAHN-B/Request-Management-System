@@ -1,26 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Hospital Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Request Monitor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🏥 Live Request Dashboard</h1>
+    <nav class="navbar navbar-dark bg-dark sticky-top shadow">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <span class="navbar-brand mb-0 h1 ms-2" id="current-view-title">Active Requests</span>
+            <div id="connection-status" class="badge bg-success">Online</div>
+        </div>
+    </nav>
 
-<table>
-    <thead>
-        <tr>
-            <th>Bed</th>
-            <th>Status</th>
-            <th>Start Time</th>
-            <th>Total Time (sec)</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="requestTable"></tbody>
-</table>
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <ul class="nav flex-column mt-2">
+                <li class="nav-item">
+                    <a class="nav-link active" id="nav-active" onclick="switchView('active')">🔴 Active Requests</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-history" onclick="switchView('history')">📜 History</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
-<script src="dashboard.js"></script>
+    <main class="container py-3">
+        <section id="active-section" class="view-content active-view">
+            <div id="active-container">
+                </div>
+        </section>
+
+        <section id="history-section" class="view-content d-none">
+            <div id="history-container">
+                </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
