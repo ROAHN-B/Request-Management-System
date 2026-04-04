@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Monitor Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Top Navbar -->
+    <nav class="top-nav sticky-top">
+        <div class="nav-inner">
+            <div class="nav-left">
+                <button class="hamburger-btn d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="brand-mark">
+                    <div class="brand-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="brand-name">Hospital Monitor</div>
+                        <div class="brand-sub">PRO DASHBOARD</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="desktop-nav d-none d-md-flex">
+                <button class="nav-pill active" id="nav-active" onclick="switchView('active')">
+                    <span class="nav-dot dot-red"></span>Active
+                </button>
+                <button class="nav-pill" id="nav-history" onclick="switchView('history')">
+                    <span class="nav-dot dot-muted"></span>History
+                </button>
+                <button class="nav-pill" id="nav-analytics" onclick="switchView('analytics')">
+                    <span class="nav-dot dot-white"></span>Analytics
+                </button>
+            </div>
+
+            <div class="nav-right">
+                <div id="connection-status" class="status-badge">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Online</span>
+                </div>
+                <div class="clock-display" id="live-clock"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Offcanvas -->
+    <div class="offcanvas offcanvas-start offcanvas-dark" tabindex="-1" id="mobileMenu">
+        <div class="offcanvas-header">
+            <div class="brand-mark">
+                <div class="brand-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <span class="brand-name">Menu</span>
+            </div>
+            <button type="button" class="btn-close-custom" data-bs-dismiss="offcanvas">✕</button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <ul class="mobile-nav-list">
+                <li><a class="mobile-nav-link active" id="mob-nav-active" onclick="switchView('active')">
+                    <span class="mobile-nav-icon"><span class="dot-pulse-sm"></span></span>Active Requests
+                </a></li>
+                <li><a class="mobile-nav-link" id="mob-nav-history" onclick="switchView('history')">
+                    <span class="mobile-nav-icon">≡</span>History
+                </a></li>
+                <li><a class="mobile-nav-link" id="mob-nav-analytics" onclick="switchView('analytics')">
+                    <span class="mobile-nav-icon">◈</span>Analytics
+                </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <main class="main-content">
+
+        <div class="view-header">
+            <h1 class="view-title" id="view-title">Active Requests</h1>
+            <div class="view-subtitle" id="view-subtitle">Real-time nurse call monitoring</div>
+        </div>
+
+        <!-- Active Section -->
+        <section id="active-section" class="view-content">
+            <div id="active-list" class="cards-grid"></div>
+        </section>
+
+        <!-- History Section -->
+        <section id="history-section" class="view-content d-none">
+            <div class="history-header-row">
+                <span>Ward</span>
+                <span>Called</span>
+                <span>Resolved</span>
+                <span>Duration</span>
+            </div>
+            <div id="history-list"></div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics-section" class="view-content d-none">
+
+            <!-- KPI Row -->
+            <div class="kpi-row">
+                <div class="stat-card stat-card-primary">
+                    <div class="stat-label">Avg. Response Time</div>
+                    <div class="stat-value" id="avg-response-val">--</div>
+                    <div class="stat-bar-wrap"><div class="stat-bar" id="avg-bar"></div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Peak Calling Hour</div>
+                    <div class="stat-value mono" id="peak-hour-val">--</div>
+                    <div class="stat-hint">Highest call volume</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Calls Logged</div>
+                    <div class="stat-value" id="kpi-total-calls">--</div>
+                    <div class="stat-hint">All time history</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Within Target (5 min)</div>
+                    <div class="stat-value" id="kpi-within-target">--</div>
+                    <div class="stat-hint">Resolution rate</div>
+                </div>
+            </div>
+
+            <!-- Gauge + Donut -->
+            <div class="chart-row-2">
+                <div class="stat-card">
+                    <div class="stat-card-title">Resolution Rate</div>
+                    <div class="chart-subtitle">% resolved within 5 minutes</div>
+                    <div id="chart-gauge"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Calls by Shift</div>
+                    <div class="chart-subtitle">Morning · Afternoon · Night</div>
+                    <div id="chart-donut"></div>
+                </div>
+            </div>
+
+            <!-- Call Volume Bar -->
+            <div class="stat-card stat-card-wide">
+                <div class="stat-card-title">Call Volume by Hour</div>
+                <div class="chart-subtitle">Total calls per hour of day</div>
+                <div id="chart-volbar"></div>
+            </div>
+
+            <!-- Response Trend + Day of Week -->
+            <div class="chart-row-2">
+                <div class="stat-card">
+                    <div class="stat-card-title">Response Time Trend</div>
+                    <div class="chart-subtitle">Average response time per hour</div>
+                    <div id="chart-trend"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Busiest Day of Week</div>
+                    <div class="chart-subtitle">Call count per weekday</div>
+                    <div id="chart-daybar"></div>
+                </div>
+            </div>
+
+            <!-- Ward Ranking -->
+            <div class="stat-card stat-card-wide">
+                <div class="stat-card-title">Ward Frequency Ranking</div>
+                <div class="chart-subtitle">Calls per ward, all time</div>
+                <ul class="ranking-list" id="ward-ranking-list"></ul>
+            </div>
+
+            <!-- Heatmap -->
+            <div class="stat-card stat-card-wide">
+                <div class="stat-card-title">Ward × Hour Heatmap</div>
+                <div class="chart-subtitle">Activity density across wards and hours</div>
+                <div id="chart-heatmap"></div>
+            </div>
+
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="dashboard.js"></script>
+    <script>
+        function updateClock() {
+            document.getElementById('live-clock').innerText =
+                new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
